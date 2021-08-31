@@ -1,4 +1,6 @@
-import { all, delay, fork, put, takeLatest } from '@redux-saga/core/effects';
+import { 
+  all, call, delay, fork, put, takeLatest, 
+} from '@redux-saga/core/effects';
 import axios from 'axios';
 import { 
   LOG_IN_FAILURE, LOG_IN_REQUEST, LOG_IN_SUCCESS, 
@@ -9,7 +11,7 @@ import {
 } from '../reducers/user';
 
 function followAPI(data) {
-  return axios.post('/api/follow', data);
+  return axios.post('/user/follow', data);
 }
 function* follow(action) { 
   try {
@@ -27,9 +29,8 @@ function* follow(action) {
   }
 }
 
-// commit
 function unfollowAPI(data) {
-  return axios.post('/api/unfollow', data);
+  return axios.post('/user/unfollow', data);
 }
 function* unfollow(action) { 
   try {
@@ -48,16 +49,16 @@ function* unfollow(action) {
 }
 
 function loginAPI(data) {
-  return axios.post('/api/login', data);
+  return axios.post('/user/login', data);
 }
 function* login(action) { 
   try {
-    yield delay(1000); // 실제 서버 요청으로 바꿀땐 주석, 아랫줄 주석 해제
-    // const result = yield call(loginAPI, action.data);
+    // yield delay(1000); // 실제 서버 요청으로 바꿀땐 주석, 아랫줄 주석 해제
+    const result = yield call(loginAPI, action.data);
     yield put({
       type: LOG_IN_SUCCESS,
-      // data: result.data
-      data: action.data,
+      // data: action.data,
+      data: result.data,
     });
   } catch (error) {
     yield put({
@@ -68,12 +69,12 @@ function* login(action) {
 }
 
 function logoutAPI() {
-  return axios.post('/api/logout');
+  return axios.post('/user/logout');
 }
 function* logout() {
   try {
-    // const result = yield call(logoutAPI);
-    yield delay(1000);
+    // yield delay(1000);
+    yield call(logoutAPI);
     yield put({
       type: LOG_OUT_SUCCESS,
       // data: result.data
@@ -86,13 +87,14 @@ function* logout() {
   }
 }
 
-function signupAPI() {
-  return axios.post('/api/signup');
+function signupAPI(data) {
+  return axios.post('/user', data);
 }
-function* signup() {
+function* signup(action) {
   try {
-    // const result = yield call(signupAPI);
-    yield delay(1000);
+    // yield delay(1000);
+    const result = yield call(signupAPI, action.data);
+    console.log(result);
     yield put({
       type: SIGN_UP_SUCCESS,
       // data: result.data

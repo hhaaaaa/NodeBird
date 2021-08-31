@@ -66,24 +66,24 @@ export const addComment = (data) => ({
   data,
 });
 
-const dummyPost = (data) => ({
-  id: data.id,
-  content: data.content,
-  User: { 
-    id: 1,
-    nickname: 'hha',
-  },
-  Images: [],
-  Comments: [],
-});
-const dummyComment = (data) => ({
-  id: shortId.generate(),
-  content: data,
-  User: { 
-    id: 1,
-    nickname: 'hha',
-  },
-});
+// const dummyPost = (data) => ({
+//   id: data.id,
+//   content: data.content,
+//   User: { 
+//     id: 1,
+//     nickname: 'hha',
+//   },
+//   Images: [],
+//   Comments: [],
+// });
+// const dummyComment = (data) => ({
+//   id: shortId.generate(),
+//   content: data,
+//   User: { 
+//     id: 1,
+//     nickname: 'hha',
+//   },
+// });
 
 const reducer = (state = initialState, action) => {
   return produce(state, (draft) => {
@@ -115,9 +115,10 @@ const reducer = (state = initialState, action) => {
         //   addPostLoading: false,
         //   addPostDone: true,
         // }; // 불변성 지키기위한 코드가 immer를 사용하면 아래와 같이 간단해짐!
-        draft.mainPosts.unshift(dummyPost(action.data));
         draft.addPostLoading = false;
         draft.addPostDone = true;
+        // draft.mainPosts.unshift(dummyPost(action.data));
+        draft.mainPosts.unshift(action.data);
         break;
       case ADD_POST_FAILURE:
         draft.addPostLoading = false;
@@ -158,8 +159,10 @@ const reducer = (state = initialState, action) => {
 
         // mainPosts 중 내가 원하는 게시글 찾고 -> 맨 앞에 dummyComment 하나 넣기
         // 위에 비해 엄청 간단해짐......
-        const post = draft.mainPosts.find((v) => v.id === action.data.postId);
-        post.Comments.unshift(dummyComment(action.data.content));
+        // const post = draft.mainPosts.find((v) => v.id === action.data.postId);
+        // post.Comments.unshift(dummyComment(action.data.content));
+        const post = draft.mainPosts.find((v) => v.id === action.data.PostId);
+        post.Comments.unshift(action.data);
         draft.addCommentLoading = false;
         draft.addCommentDone = true;
         break;

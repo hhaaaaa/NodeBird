@@ -22,12 +22,8 @@ NodeBird.propTypes = {
 };
 export default wrapper.withRedux(NodeBird);
 
-/* 
-  궁금증 해결
-  1. 시퀄라이즈, 맨 앞글자 대문자 표기?
-*/
+/* @@@ 브라우저, 프론트서버: 3060 @@@
 
-/*
   ### Next 설치 및 화면 디자인 ###
   1. Node 및 Npm 설치 확인
 

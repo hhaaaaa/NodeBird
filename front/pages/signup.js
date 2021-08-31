@@ -1,9 +1,10 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import Head from 'next/head';
+import Router from 'next/router';
 import { Form, Input, Checkbox, Button } from 'antd';
 import styled from 'styled-components';
 
-import { useDispatch, useSelector } from 'react-redux';
 
 import AppLayout from '../components/AppLayout';
 import useInput from '../hooks/useInput';
@@ -15,7 +16,27 @@ const ErrorMessage = styled.div`
 
 const signup = () => {
   const dispatch = useDispatch();
-  const { signupLoading } = useSelector((state) => state.user);
+  const { signupLoading, signupDone, signupError, me } = useSelector((state) => state.user);
+
+  // 로그인 성공 시 회원가입 페이지 빠져나가도록
+  useEffect(() => {
+    if (me && me.id) {
+      // 뒤로가기 시 이전 페이지가 나오지 않도록
+      Router.replace('/');
+    }
+  }, [me && me.id]);
+
+  useEffect(() => {
+    if (signupDone) {
+      Router.replace('/');
+    }
+  }, [signupDone]);
+
+  useEffect(() => {
+    if (signupError) {
+      alert(signupError);
+    }
+  }, [signupError]);
 
   const [email, onChangeEmail] = useInput('');
   const [nickname, onChangeNickname] = useInput('');
