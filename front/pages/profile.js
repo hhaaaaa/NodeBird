@@ -2,14 +2,27 @@ import React, { useEffect } from 'react';
 import Head from 'next/head';
 import Router from 'next/router';
 
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 import NicknameEditForm from '../components/NicknameEditForm';
 import FollowList from '../components/FollowList';
 import AppLayout from '../components/AppLayout';
+import { 
+  LOAD_FOLLOWERS_REQUEST, LOAD_FOLLOWINGS_REQUEST, 
+} from '../reducers/user';
 
 const profile = () => {
+  const dispatch = useDispatch();
   const { me } = useSelector((state) => state.user);
+
+  useEffect(() => {
+    dispatch({
+      type: LOAD_FOLLOWERS_REQUEST,
+    });
+    dispatch({
+      type: LOAD_FOLLOWINGS_REQUEST,
+    });
+  }, []);
   
   // 로그인 하지 않은 채로 프로필 페이지로 이동할때 처리
   useEffect(() => {

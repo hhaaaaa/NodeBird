@@ -27,8 +27,10 @@ const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const passport = require('passport');
 const dotenv = require('dotenv');
+const morgan = require('morgan');
 
 const postRouter = require('./routes/post');
+const postsRouter = require('./routes/posts');
 const userRouter = require('./routes/user');
 const db = require('./models');
 const passportConfig = require('./passport');
@@ -42,6 +44,7 @@ db.sequelize.sync()
   .catch(console.error);
 passportConfig();
 
+app.use(morgan('dev'));
 app.use(cors({
   // origin: '*',
   // 보낸 곳의 주소가 자동으로 들어가 편리함! (또는 http://localhost:3060)
@@ -67,16 +70,11 @@ app.use(passport.session());
 app.get('/', (req, res) => {
   res.send('hello express');
 });
-app.get('/posts', (req, res) => {
-  res.json([
-    { id: 1, content: 'hello1' },
-    { id: 2, content: 'hello2' },
-    { id: 3, content: 'hello3' },
-  ]);
-});
+
 // post.js 폴더로 이동해서 코드 간결하게
 //  /post prefix를 줌
 app.use('/post', postRouter);
+app.use('/posts', postsRouter);
 app.use('/user', userRouter);
 
 // 에러 처리 미들웨어 custom 가능
@@ -92,6 +90,7 @@ app.listen(3065, () => {
 /* 
   @@@ 백엔드서버: 3065 @@@
   @@@ MySQL: 3306 @@@
+  @ brew 통한 mysql 실행: mysql -h localhost -u root -p @
 
   ### Back-End ###
   1. back/app.js 생성
@@ -179,4 +178,6 @@ app.listen(3065, () => {
       3) Access-Control-Allow-Origin을 * 대신 명시해주기!
         - app.use() 내부 origin에 허용할 도메인 
                                 또는 true 작성 (보안에는 좋지 않음)
+  16. 서버에 요청/응답 기록
+    - [설치] npm i morgan
 */

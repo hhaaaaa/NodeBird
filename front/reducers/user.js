@@ -1,6 +1,18 @@
 import produce from 'immer';
 
 export const initialState = {
+  loadFollowersLoading: false, // 팔로워 불러오기 시도 중 (로딩창 용도)
+  loadFollowersDone: false,
+  loadFollowersError: null,
+  loadFollowingsLoading: false, // 팔로잉 불러오기 시도 중 (로딩창 용도)
+  loadFollowingsDone: false,
+  loadFollowingsError: null,
+  loadUserLoading: false, // 로그인 유저 불러오기 시도 중 (로딩창 용도)
+  loadUserDone: false,
+  loadUserError: null,
+  removeFollowerLoading: false, // 팔로워 제거 시도 중 (로딩창 용도)
+  removeFollowerDone: false,
+  removeFollowerError: null,
   followLoading: false, // 팔로우 시도 중 (로딩창 용도)
   followDone: false,
   followError: null,
@@ -43,6 +55,18 @@ export const initialState = {
 //   }
 // };
 
+export const LOAD_MY_INFO_REQUEST = 'LOAD_MY_INFO_REQUEST';
+export const LOAD_MY_INFO_SUCCESS = 'LOAD_MY_INFO_SUCCESS';
+export const LOAD_MY_INFO_FAILURE = 'LOAD_MY_INFO_FAILURE';
+
+export const LOAD_FOLLOWERS_REQUEST = 'LOAD_FOLLOWERS_REQUEST';
+export const LOAD_FOLLOWERS_SUCCESS = 'LOAD_FOLLOWERS_SUCCESS';
+export const LOAD_FOLLOWERS_FAILURE = 'LOAD_FOLLOWERS_FAILURE';
+
+export const LOAD_FOLLOWINGS_REQUEST = 'LOAD_FOLLOWINGS_REQUEST';
+export const LOAD_FOLLOWINGS_SUCCESS = 'LOAD_FOLLOWINGS_SUCCESS';
+export const LOAD_FOLLOWINGS_FAILURE = 'LOAD_FOLLOWINGS_FAILURE';
+
 export const LOG_IN_REQUEST = 'LOG_IN_REQUEST';
 export const LOG_IN_SUCCESS = 'LOG_IN_SUCCESS';
 export const LOG_IN_FAILURE = 'LOG_IN_FAILURE';
@@ -67,17 +91,21 @@ export const UNFOLLOW_REQUEST = 'UNFOLLOW_REQUEST';
 export const UNFOLLOW_SUCCESS = 'UNFOLLOW_SUCCESS';
 export const UNFOLLOW_FAILURE = 'UNFOLLOW_FAILURE';
 
+export const REMOVE_FOLLOWER_REQUEST = 'REMOVE_FOLLOWER_REQUEST';
+export const REMOVE_FOLLOWER_SUCCESS = 'REMOVE_FOLLOWER_SUCCESS';
+export const REMOVE_FOLLOWER_FAILURE = 'REMOVE_FOLLOWER_FAILURE';
+
 export const ADD_POST_TO_ME = 'ADD_POST_TO_ME';
 export const REMOVE_POST_OF_ME = 'REMOVE_POST_OF_ME';
 
-const dummyUser = (data) => ({
-  ...data,
-  nickname: 'hha',
-  id: 1,
-  Posts: [{ id: 1 }],
-  Followings: [{ nickname: 'mma' }, { nickname: 'ssa' }, { nickname: 'dda' }],
-  Followers: [{ nickname: 'mma' }, { nickname: 'ssa' }, { nickname: 'dda' }],
-});
+// const dummyUser = (data) => ({
+//   ...data,
+//   nickname: 'hha',
+//   id: 1,
+//   Posts: [{ id: 1 }],
+//   Followings: [{ nickname: 'mma' }, { nickname: 'ssa' }, { nickname: 'dda' }],
+//   Followers: [{ nickname: 'mma' }, { nickname: 'ssa' }, { nickname: 'dda' }],
+// });
 
 export const loginRequestAction = (data) => {
   return {
@@ -95,6 +123,62 @@ export const logoutRequestAction = () => {
 const reducer = (state = initialState, action) => {
   return produce(state, (draft) => {
     switch (action.type) {
+      case LOAD_FOLLOWERS_REQUEST:
+        draft.loadfollowersLoading = true;
+        draft.loadfollowersDone = false;
+        draft.loadfollowersError = null;
+        break;
+      case LOAD_FOLLOWERS_SUCCESS:
+        draft.loadfollowersLoading = false;
+        draft.loadfollowersDone = true;
+        draft.me.Followers = action.data;
+        break;
+      case LOAD_FOLLOWERS_FAILURE:
+        draft.loadfollowersLoading = false;
+        draft.loadfollowersError = action.error;
+        break;
+      case LOAD_FOLLOWINGS_REQUEST:
+        draft.loadfollowingsLoading = true;
+        draft.loadfollowingsDone = false;
+        draft.loadfollowingsError = null;
+        break;
+      case LOAD_FOLLOWINGS_SUCCESS:
+        draft.loadfollowingsrLoading = false;
+        draft.loadfollowingsrDone = true;
+        draft.me.Followings = action.data;
+        break;
+      case LOAD_FOLLOWINGS_FAILURE:
+        draft.loadfollowingsLoading = false;
+        draft.loadfollowingsError = action.error;
+        break;
+      case LOAD_MY_INFO_REQUEST:
+        draft.loadUserLoading = true;
+        draft.loadUserDone = false;
+        draft.loadUserError = null;
+        break;
+      case LOAD_MY_INFO_SUCCESS:
+        draft.loadUserLoading = false;
+        draft.loadUserDone = true;
+        draft.me = action.data;
+        break;
+      case LOAD_MY_INFO_FAILURE:
+        draft.loadUserLoading = false;
+        draft.loadUserError = action.error;
+        break;
+      case REMOVE_FOLLOWER_REQUEST:
+        draft.reomveFollowerLoading = true;
+        draft.reomveFollowerDone = false;
+        draft.reomveFollowerError = null;
+        break;
+      case REMOVE_FOLLOWER_SUCCESS:
+        draft.removeFollowerLoading = false;
+        draft.removeFollowerDone = true;
+        draft.me.Followers = draft.me.Followers.filter((v) => v.id !== action.data.UserId);
+        break;
+      case REMOVE_FOLLOWER_FAILURE:
+        draft.removeFollowerLoading = false;
+        draft.removeFollowerError = action.error;
+        break;
       case FOLLOW_REQUEST:
         draft.followLoading = true;
         draft.followDone = false;
@@ -103,7 +187,7 @@ const reducer = (state = initialState, action) => {
       case FOLLOW_SUCCESS:
         draft.followLoading = false;
         draft.followDone = true;
-        draft.me.Followings.push({ id: action.data });
+        draft.me.Followings.push({ id: action.data.UserId });
         break;
       case FOLLOW_FAILURE:
         draft.followLoading = false;
@@ -117,7 +201,7 @@ const reducer = (state = initialState, action) => {
       case UNFOLLOW_SUCCESS:
         draft.unfollowLoading = false;
         draft.unfollowDone = true;
-        draft.me.Followings = draft.me.Followings.filter((v) => v.id !== action.data);
+        draft.me.Followings = draft.me.Followings.filter((v) => v.id !== action.data.UserId);
         break;
       case UNFOLLOW_FAILURE:
         draft.unfollowLoading = false;
@@ -178,6 +262,7 @@ const reducer = (state = initialState, action) => {
         draft.changeNicknameError = null;
         break;
       case CHANGE_NICKNAME_SUCCESS:
+        draft.me.nickname = action.data.nickname;
         draft.changeNicknameLoading = false;
         draft.changeNicknameDone = true;
         break;
@@ -200,10 +285,10 @@ const reducer = (state = initialState, action) => {
         //   ...state,
         //   me: {
         //     ...state.me,
-        //     Posts: state.me.Posts.filter((v) => v.id === action.data),
+        //     Posts: state.me.Posts.filter((v) => v.id !== action.data),
         //   },
         // };
-        draft.me.Posts = draft.me.Posts.filter((v) => v.id === action.data);
+        draft.me.Posts = draft.me.Posts.filter((v) => v.id !== action.data);
         break;
       default:
         // return state;

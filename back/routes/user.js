@@ -6,6 +6,28 @@ const { User, Post } = require('../models');
 const { isLoggedIn, isNotLoggedIn } = require('./middlewares');
 const router = express.Router();
 
+router.get('/', async (req, res, next) => { // GET /user
+  try {
+    if (req.user) {
+      const fullUserWithoutPassword = await User.findOne({
+        where: { id: req.user.id },
+        attributes: { exclude: ['password'] },
+        include: [
+          { model: Post, attributes: ['id'] },
+          { model: User, as: 'Followings', attributes: ['id'] },
+          { model: User, as: 'Followers', attributes: ['id'] },
+        ],
+      });
+      res.status(200).json(fullUserWithoutPassword);
+    } else {
+      res.status(200).status(null);
+    }
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+});
+
 router.post('/login', isNotLoggedIn, (req, res, next) => {
   // 미들웨어 확장 (express 기법 중 하나)
   passport.authenticate('local', (err, user, info) => {
@@ -30,9 +52,10 @@ router.post('/login', isNotLoggedIn, (req, res, next) => {
         attributes: { exclude: ['password'] },
         // 관계 포함
         include: [
-          { model: Post },
-          { model: User, as: 'Followings' },
-          { model: User, as: 'Followers' },
+          // 서버로부터 프론트에 필요한 데이터만 보내주기 (attribute에 id만)
+          { model: Post, attributes: ['id'] },
+          { model: User, as: 'Followings', attributes: ['id'] },
+          { model: User, as: 'Followers', attributes: ['id'] },
         ],
       });
       return res.status(200).json(fullUserWithoutPassword);
@@ -73,6 +96,101 @@ router.post('/logout', isLoggedIn, (req, res) => {
   req.logout();
   req.session.destroy();
   res.send('ok');
+});
+
+// PATCH /user/nickname
+router.patch('/nickname', isLoggedIn, async (req, res, next) => {  
+  try {
+    await User.update(
+      { nickname: req.body.nickname },
+      { where: { id: req.user.id }},
+    );
+    res.status(200).json({ nickname: req.body.nickname });
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+});
+
+// PATCH /user/1/follow
+router.patch('/:userId/follow', isLoggedIn, async (req, res, next) => {
+  try {
+    const user = await User.findOne({
+      where: { id: req.params.userId },
+    });
+    if (!user) {
+      return res.status(403).send('없는 사람을 팔로우 시도 중입니다.');
+    }
+    await user.addFollowers(req.user.id);
+    res.status(200).json({ UserId: req.params.userId * 1 });
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+});
+// DELETE /user/1/follow
+router.delete('/:userId/follow', isLoggedIn, async (req, res, next) => {
+  try {
+    const user = await User.findOne({
+      where: { id: req.params.userId },
+    });
+    if (!user) {
+      return res.status(403).send('없는 사람을 팔로우 취소 시도 중입니다.');
+    }
+    await user.removeFollowers(req.user.id);
+    res.status(200).json({ UserId: req.params.userId * 1 });
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+});
+// DELETE /user/follower/1
+router.delete('/follower/:userId', isLoggedIn, async (req, res, next) => {
+  try {
+    const user = await User.findOne({
+      where: { id: req.params.userId },
+    });
+    if (!user) {
+      return res.status(403).send('없는 사람을 차단 시도 중입니다.');
+    }
+    await user.removeFollowings(req.user.id);
+    res.status(200).json({ UserId: req.params.userId * 1 });
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+});
+// GET /user/followers
+router.get('/followers', isLoggedIn, async (req, res, next) => {
+  try {
+    const user = await User.findOne({
+      where: { id: req.user.id },
+    });
+    if (!user) {
+      return res.status(403).send('엥?');
+    }
+    const followers = await user.getFollowers();
+    res.status(200).json(followers);
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+});
+// GET /user/followings
+router.get('/followings', isLoggedIn, async (req, res, next) => {
+  try {
+    const user = await User.findOne({
+      where: { id: req.user.id },
+    });
+    if (!user) {
+      return res.status(403).send('엥?');
+    }
+    const followings = await user.getFollowings();
+    res.status(200).json(followings);
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
 });
 
 module.exports = router;

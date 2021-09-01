@@ -9,24 +9,37 @@ import Avatar from 'antd/lib/avatar/avatar';
 import PostImages from './PostImages';
 import CommentForm from './CommentForm';
 import PostCardContent from './PostCardContent';
-import { REMOVE_POST_REQUEST } from '../reducers/post';
+import { LIKE_POST_REQUEST, REMOVE_POST_REQUEST, UNLIKE_POST_REQUEST } from '../reducers/post';
 import FollowButton from './FollowButton';
 
 const PostCard = ({ post }) => {
   const dispatch = useDispatch();
-  const { me } = useSelector((state) => state.user);
   const { removePostLoading } = useSelector((state) => state.post);
-  const id = me && me.id; // &&: 앞이 true면 뒤 실행 / ||: 앞이 false면 뒤 실행
-  // const id = me?.id; // Optional Chaining 연산자, 새로 생김
-  // const id = useSelector((state) => state.user.me?.id);
 
-  const [liked, setLiked] = useState(false);
+  // const { me } = useSelector((state) => state.user);
+  // const id = me && me.id; // &&: 앞이 true면 뒤 실행 / ||: 앞이 false면 뒤 실행
+  // const id = me?.id; // Optional Chaining 연산자, 새로 생김
+  const id = useSelector((state) => state.user.me?.id);
+  const liked = post.Likers.find((v) => v.id === id);
+
+  // const [liked, setLiked] = useState(false);
   const [commentFormOpened, setCommentFormOpened] = useState(false);
 
-  const onToggleLike = useCallback(() => {
+  const onLike = useCallback(() => {
     // boolean state 반전시킬때 많이 사용하는 방법
-    setLiked((prev) => !prev);
+    // setLiked((prev) => !prev);
+    dispatch({
+      type: LIKE_POST_REQUEST,
+      data: post.id,
+    });
   }, []);
+  const onUnlike = useCallback(() => {
+    dispatch({
+      type: UNLIKE_POST_REQUEST,
+      data: post.id,
+    });
+  }, []);
+
   const onToggleComment = useCallback(() => {
     setCommentFormOpened((prev) => !prev);
   }, []);
@@ -45,8 +58,8 @@ const PostCard = ({ post }) => {
         actions={[
           <RetweetOutlined key="retweet" />,
           liked 
-            ? <HeartTwoTone twoToneColor="#eb2f96" key="heart" onClick={onToggleLike} /> 
-            : <HeartOutlined key="heart" onClick={onToggleLike} />,
+            ? <HeartTwoTone twoToneColor="#eb2f96" key="heart" onClick={onUnlike} /> 
+            : <HeartOutlined key="heart" onClick={onLike} />,
           <MessageOutlined key="comment" onClick={onToggleComment} />,
           <Popover key="more" content={(
             <Button.Group>
@@ -98,9 +111,10 @@ PostCard.propTypes = {
     id: PropTypes.number,
     User: PropTypes.object,
     content: PropTypes.string,
-    createdAt: PropTypes.object,
+    createdAt: PropTypes.string,
     Comments: PropTypes.arrayOf(PropTypes.object),
     Images: PropTypes.arrayOf(PropTypes.object),
+    Likers: PropTypes.arrayOf(PropTypes.object),
   }).isRequired,
 };
 export default PostCard;
