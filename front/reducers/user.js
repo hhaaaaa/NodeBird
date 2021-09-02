@@ -7,6 +7,9 @@ export const initialState = {
   loadFollowingsLoading: false, // 팔로잉 불러오기 시도 중 (로딩창 용도)
   loadFollowingsDone: false,
   loadFollowingsError: null,
+  loadMyInfoLoading: false, // 내 로그인 정보 불러오기 시도 중 (로딩창 용도)
+  loadMyInfoDone: false,
+  loadMyInfoError: null,
   loadUserLoading: false, // 로그인 유저 불러오기 시도 중 (로딩창 용도)
   loadUserDone: false,
   loadUserError: null,
@@ -58,6 +61,10 @@ export const initialState = {
 export const LOAD_MY_INFO_REQUEST = 'LOAD_MY_INFO_REQUEST';
 export const LOAD_MY_INFO_SUCCESS = 'LOAD_MY_INFO_SUCCESS';
 export const LOAD_MY_INFO_FAILURE = 'LOAD_MY_INFO_FAILURE';
+
+export const LOAD_USER_REQUEST = 'LOAD_USER_REQUEST';
+export const LOAD_USER_SUCCESS = 'LOAD_USER_SUCCESS';
+export const LOAD_USER_FAILURE = 'LOAD_USER_FAILURE';
 
 export const LOAD_FOLLOWERS_REQUEST = 'LOAD_FOLLOWERS_REQUEST';
 export const LOAD_FOLLOWERS_SUCCESS = 'LOAD_FOLLOWERS_SUCCESS';
@@ -152,16 +159,30 @@ const reducer = (state = initialState, action) => {
         draft.loadfollowingsError = action.error;
         break;
       case LOAD_MY_INFO_REQUEST:
+        draft.loadMyInfoLoading = true;
+        draft.loadMyInfoDone = false;
+        draft.loadMyInfoError = null;
+        break;
+      case LOAD_MY_INFO_SUCCESS:
+        draft.loadMyInfoLoading = false;
+        draft.loadMyInfoDone = true;
+        draft.me = action.data;
+        break;
+      case LOAD_MY_INFO_FAILURE:
+        draft.loadMyInfoLoading = false;
+        draft.loadMyInfoError = action.error;
+        break;
+      case LOAD_USER_REQUEST:
         draft.loadUserLoading = true;
         draft.loadUserDone = false;
         draft.loadUserError = null;
         break;
-      case LOAD_MY_INFO_SUCCESS:
+      case LOAD_USER_SUCCESS:
         draft.loadUserLoading = false;
         draft.loadUserDone = true;
-        draft.me = action.data;
+        draft.userInfo = action.data;
         break;
-      case LOAD_MY_INFO_FAILURE:
+      case LOAD_USER_FAILURE:
         draft.loadUserLoading = false;
         draft.loadUserError = action.error;
         break;

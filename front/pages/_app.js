@@ -549,4 +549,50 @@ export default wrapper.withRedux(NodeBird);
 
         - 이 기법을 사용할 때는 내장된 infiniteloader를 사용해야! (docs 참조)
 
+
+  ### 서버사이드 렌더링 ###
+  1. 서버사이드 렌더링
+    - next-redux-wrapper가 제공하는 SSR용 메소드를 사용하는게 좋다
+
+    1) HYDRATE로 데이터가 올바르게 전달되도록 설정
+      - rootReducer 구조 수정
+
+    2) 화면을 그리기 전에 Redux에 데이터를 채움
+      - 프론트서버에서 getServerSideProps() 실행 -> Saga 유무 판단 -> 있으면 백엔드서버에서 데이터 가져옴
+      - getServerSideProps(), getStaticProps()는 컴포넌트 렌더링보다 먼저 실행됨
+        - 서버 쪽에서 수행되기 때문에, window.sessionStorage에 접근할 수 없음!
+          - 쿠키 사용
+          - 요청 Header에 토큰 넣어 사용
+          두 가지 방법 중 하나를 택해야 한다!
+
+      [1] export default 전에
+          export const getServerSideProps = wrapper.getServerSideProps(async (content) => {}) 선언
+        - content 내부에 store가 들어있음
+        - Redux에 데이터가 채워진 상태로 렌더링됨!
+        - 내부에 서버사이드 렌더링 원하는 dispatch문 작성
+          - context.store.dispatch({})
+
+      [2] request에 대한 response가 올 때까지 기다려줄 장치 구현
+        - import { END } from 'redux-saga';
+        - context.store.dispatch(END);
+        - await context.store.sagaTask.toPromise();
+          - store.sagaTask는 configureStore에 등록해뒀었음
+      
+      [3] getServerSideProps() 내부가 실행되면 그 결과가 HYDRATE로 전달됨
+
+    3) 쿠키 설정
+      - 브라우저에서 백엔드로 데이터 보낼때, 브라우저가 쿠키를 직접 담아줌
+        axios 요청 보낼때 header에 쿠키 설정하지 않아도, 브라우저가 알아서 보내줬음
+      - 서버사이드 렌더링: 프로트서버 -> 백엔드서버
+        => 브라우저가 개입조차 하지 못함! (getServerSideProps() 부분은 프론트서버에서 실행되는것!)
+      - 2)-[1] getServerSideProps() 내부에 쿠키 설정
+        - const cookie = context.req ? context.req.headers.cookie : '';
+          axios.defaults.headers.Cookie = '';
+          if (context.req && cookie) {
+            axios.defaults.headers.Cookie = cookie;
+          }
+        - context.req && cookie : 서버이고 쿠키가 있을때만 cookie를 넣어주도록 설정!!!
+          - 서버쪽에서 실행이 되면 context.req가 생기게 된다!
+        - 프론트서버에서 쿠키가 공유되는 문제 생길 수 있음! (로그인이 공유)
+          - 사용자1이 로그인한 후 사용자2가 접속한 경우, 사용자1의 정보로 로그인 되어있는 버그가 생길 수 있음
 */

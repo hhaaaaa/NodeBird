@@ -1,4 +1,5 @@
 const express = require('express');
+const { Op } = require('sequelize');
 
 const { Post, User, Image, Comment } = require('../models');
 
@@ -6,7 +7,12 @@ const router = express.Router();
 
 router.get('/', async (req, res, next) => { // GET /posts
   try {
+    const where = {};
+    if (req.query.lastId * 1) { // 초기 로딩이 아닐때
+      where.id = { [Op.lt]: req.query.lastId * 1 }; // lastId 보다 작은
+    }
     const posts = await Post.findAll({
+      where,
       limit: 10,  // 10개만 가져와라
       // offset: 0,  // 1~10까지 -> 추가 삭제 시 문제
       order: [
@@ -21,6 +27,10 @@ router.get('/', async (req, res, next) => { // GET /posts
           include: [{ model: User, attributes: ['id', 'nickname'] }],
         },
         { model: User, as: 'Likers', attributes: ['id']},
+        { model: Post, as: 'Retweet', include: [
+          { model: User, attributes: ['id', 'nickname'] },
+          { model: Image },
+        ]},
       ],
     });
     res.status(200).json(posts);

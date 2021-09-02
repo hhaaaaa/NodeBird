@@ -34,35 +34,52 @@ import post from './post';
 // (이전상태, 액션) => 다음상태
 // - 이전상태와 액션을 바탕으로 다음상태를 만들어내는 함수!
 // const rootReducer = ((state = initialState, action) => {
-const rootReducer = combineReducers({
-  index: (state = {}, action) => {
-    switch (action.type) {
-      case HYDRATE:
-        console.log('HYDRATE', action);
-        return { ...state, ...action.payload };
-      // case 'LOG_IN':
-      //   return {
-      //     ...state,
-      //     user: {
-      //       ...state.user,
-      //       isLoggedIn: true,
-      //       user: action.data,
-      //     }
-      //   };
-      // case 'LOG_OUT':
-      //   return {
-      //     ...state,
-      //     user: {
-      //       ...state.user,
-      //       isLoggedIn: false,
-      //       user: null,
-      //     }
-      //   };
-      default: // Reducer 초기화할 때, return 값이 undefined가 될 수 있기때문에 넣어줌!
-        return state;
+// const rootReducer = combineReducers({
+//   index: (state = {}, action) => {
+//     switch (action.type) {
+//       case HYDRATE:
+//         console.log('HYDRATE', action);
+//         return { ...state, ...action.payload };
+//       // case 'LOG_IN':
+//       //   return {
+//       //     ...state,
+//       //     user: {
+//       //       ...state.user,
+//       //       isLoggedIn: true,
+//       //       user: action.data,
+//       //     }
+//       //   };
+//       // case 'LOG_OUT':
+//       //   return {
+//       //     ...state,
+//       //     user: {
+//       //       ...state.user,
+//       //       isLoggedIn: false,
+//       //       user: null,
+//       //     }
+//       //   };
+//       default: // Reducer 초기화할 때, return 값이 undefined가 될 수 있기때문에 넣어줌!
+//         return state;
+//     }
+//   },
+//   user,
+//   post,
+// });
+
+// 서버사이드 렌더링을 위한 rootReducer 구조가 잘못되어있음!
+const rootReducer = (state, action) => {
+  switch (action.type) {
+    case HYDRATE:
+      console.log('HYDRATE', action);
+      return action.payload;
+    default: {
+      const combinedReducer = combineReducers({
+        user,
+        post,
+      });
+      return combinedReducer(state, action);
     }
-  },
-  user,
-  post,
-});
+  }
+};
+
 export default rootReducer;

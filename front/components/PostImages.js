@@ -18,7 +18,12 @@ const PostImages = ({ images }) => {
     return (
       <>
         {/* role="presentation": 클릭할 순 있지만, 굳이 클릭하지 않아도 된다고 스크린 리더가 인식함 */}
-        <img role="presentation" src={images[0].src} alt={images[0].src} onClick={onZoom} />  
+        <img 
+          role="presentation" 
+          src={`http://localhost:3065/${images[0].src}`} 
+          alt={images[0].src} 
+          onClick={onZoom} 
+        />  
         {showImagesZoom && <ImagesZoom images={images} onClose={onClose} />}
       </>
     );
@@ -27,8 +32,19 @@ const PostImages = ({ images }) => {
   if (images.length === 2) {
     return (
       <>
-        <img role="presentation" style={{ display: 'inline-block', width: '50%' }} src={images[0].src} alt={images[0].src} onClick={onZoom} />  
-        <img role="presentation" style={{ display: 'inline-block', width: '50%' }} src={images[1].src} alt={images[1].src} onClick={onZoom} />  
+        <img 
+          role="presentation" 
+          style={{ display: 'inline-block', width: '50%' }} 
+          src={`http://localhost:3065/${images[0].src}`} 
+          alt={images[0].src} 
+          onClick={onZoom} 
+        />  
+        <img role="presentation" 
+          style={{ display: 'inline-block', width: '50%' }} 
+          src={`http://localhost:3065/${images[1].src}`} 
+          alt={images[1].src} 
+          onClick={onZoom} 
+        />  
         {showImagesZoom && <ImagesZoom images={images} onClose={onClose} />}
       </>
     );
@@ -36,7 +52,13 @@ const PostImages = ({ images }) => {
 
   return (
     <>
-      <img role="presentation" style={{ display: 'inline-block', width: '50%' }} src={images[0].src} alt={images[0].src} onClick={onZoom} />  
+      <img 
+        role="presentation" 
+        style={{ display: 'inline-block', width: '50%' }} 
+        src={`http://localhost:3065/${images[0].src}`} 
+        alt={images[0].src} 
+        onClick={onZoom} 
+      />  
       <div
         role="presentation"
         style={{ display: 'inline-block', width: '50%', textAlign: 'center', verticalAlign: 'middle' }}

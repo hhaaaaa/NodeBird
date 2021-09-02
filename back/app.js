@@ -28,6 +28,7 @@ const cookieParser = require('cookie-parser');
 const passport = require('passport');
 const dotenv = require('dotenv');
 const morgan = require('morgan');
+const path = require('path');
 
 const postRouter = require('./routes/post');
 const postsRouter = require('./routes/posts');
@@ -51,12 +52,20 @@ app.use(cors({
   origin: true, 
   credentials: true,
 }));
+// express가 uploads 폴더를 프론트에 제공할 수 있도록
+app.use('/', express.static(path.join(__dirname, 'uploads')));
 // 프론트에서 보낸 데이터를 사용할 수 있도록 하는 코드
 //  - 위치가 꼭 이 곳이어야 함!!
 //  - router보다 선행되도록!
 //  - use() 내부에 들어가는 것들이 미들웨어!
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// axios의 두 번째 파라미터 데이터를 req.body에 넣는 역할
+app.use(express.json());  
+// 일반 form을 통해 들어온 데이터를 req.body에 넣는 역할
+//  - extended: true
+//    : qs 모듈을 사용해 쿼리스트링(url에서 ? 뒷 부분)을 파싱한다고 설정
+//      ex) http://localhost:3065/search?year=2021
+//        - qs모듈은 year=2021을 req.query에 저장하는 역할
+app.use(express.urlencoded({ extended: true }));  
 // 쿠키 및 세션 설정
 app.use(cookieParser('nodebirdsecret'));
 app.use(session({
@@ -180,4 +189,9 @@ app.listen(3065, () => {
                                 또는 true 작성 (보안에는 좋지 않음)
   16. 서버에 요청/응답 기록
     - [설치] npm i morgan
+  17. 이미지 업로드
+    - [설치] npm i multer
+    - multer 미들웨어는 app에 장착할 수도 있지만,
+      보통은 라우터마다 장착 및 세팅! 
+      (form마다 이미지 업로드 개수, 업로드 여부가 다르기 때문에)
 */

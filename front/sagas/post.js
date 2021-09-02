@@ -11,6 +11,8 @@ import {
   REMOVE_POST_FAILURE, REMOVE_POST_REQUEST, REMOVE_POST_SUCCESS, 
   LIKE_POST_REQUEST, LIKE_POST_SUCCESS, LIKE_POST_FAILURE,
   UNLIKE_POST_REQUEST, UNLIKE_POST_SUCCESS, UNLIKE_POST_FAILURE,
+  UPLOAD_IMAGES_REQUEST, UPLOAD_IMAGES_SUCCESS, UPLOAD_IMAGES_FAILURE, 
+  RETWEET_REQUEST, RETWEET_SUCCESS, RETWEET_FAILURE,
   // generateDummyPost,
 } from '../reducers/post';
 import { 
@@ -52,13 +54,13 @@ function* likePost(action) {
   }
 }
 
-function loadPostsAPI(data) {
-  return axios.get('/posts', data);
+function loadPostsAPI(lastId) {
+  return axios.get(`/posts?lastId=${lastId || 0}`);
 }
 function* loadPosts(action) {
   try {
     // yield delay(1000);
-    const result = yield call(loadPostsAPI, action.data);
+    const result = yield call(loadPostsAPI, action.lastId);
     yield put({
       type: LOAD_POSTS_SUCCESS,
       // data: generateDummyPost(10),
@@ -73,13 +75,14 @@ function* loadPosts(action) {
 }
 
 function addPostAPI(data) {
-  return axios.post('/post', { content: data });
+  // return axios.post('/post', { content: data });
+  return axios.post('/post', data); // FormData는 json 형식이면 안됨
 }
 function* addPost(action) {
   try {
     // yield delay(1000);
     const result = yield call(addPostAPI, action.data);
-    console.log(result);
+    // console.log(result);
     // const id = shortId.generate();
     yield put({
       type: ADD_POST_SUCCESS,
@@ -97,6 +100,24 @@ function* addPost(action) {
   } catch (error) {
     yield put({
       type: ADD_POST_FAILURE,
+      error: error.response.data,
+    });
+  }
+}
+
+function uploadImagesAPI(data) {
+  return axios.post('/post/images', data);
+}
+function* uploadImages(action) {
+  try {
+    const result = yield call(uploadImagesAPI, action.data);
+    yield put({
+      type: UPLOAD_IMAGES_SUCCESS,
+      data: result.data,
+    });
+  } catch (error) {
+    yield put({
+      type: UPLOAD_IMAGES_FAILURE,
       error: error.response.data,
     });
   }
@@ -143,6 +164,25 @@ function* addComment(action) {
   }
 }
 
+function retweetAPI(data) {
+  return axios.post(`/post/${data}/retweet`);
+}
+function* retweet(action) {
+  try {
+    const result = yield call(retweetAPI, action.data);
+    yield put({
+      type: RETWEET_SUCCESS,
+      data: result.data,
+    });
+  } catch (error) {
+    console.error(error);
+    yield put({
+      type: RETWEET_FAILURE,
+      error: error.response.data,
+    });
+  }
+}
+
 function* watchUnlikePost() {
   yield throttle(5000, UNLIKE_POST_REQUEST, unlikePost);
 }
@@ -161,6 +201,12 @@ function* watchRemovePost() {
 function* watchAddComment() {
   yield takeLatest(ADD_COMMENT_REQUEST, addComment);
 }
+function* watchUploadImages() {
+  yield takeLatest(UPLOAD_IMAGES_REQUEST, uploadImages);
+}
+function* watchRetweet() {
+  yield takeLatest(RETWEET_REQUEST, retweet);
+}
 
 export default function* postSaga() {
   yield all([
@@ -170,5 +216,7 @@ export default function* postSaga() {
     fork(watchLoadPosts),
     fork(watchRemovePost),
     fork(watchAddComment),
+    fork(watchUploadImages),
+    fork(watchRetweet),
   ]);
 }
