@@ -66,32 +66,29 @@ const Home = () => {
 // Home 컴포넌트보다 먼저 실행됨
 //  - getStaticProps와 같은 것을 넣어두면, Home 컴포넌트보다 먼저 실행이됨!
 export const getServerSideProps = wrapper.getServerSideProps(async (context) => {
-  try {
-    const cookie = context.req ? context.req.headers.cookie : '';
-    axios.defaults.headers.Cookie = '';
-    if (context.req && cookie) {
-      axios.defaults.headers.Cookie = cookie;
-    }
-
-    // 컴포넌트 화면을 그리기 전에, 서버쪽에서 먼저 실행을 함
-    //  - context 내부에 store가 들어 있음
-    //  - Redux에 데이터가 채워진 상태로 렌더링이 됨!
-    // console.log(context);
-    context.store.dispatch({
-      type: LOAD_MY_INFO_REQUEST,
-    });
-    context.store.dispatch({
-      type: LOAD_POSTS_REQUEST,
-    });
-    // 두 개의 request에 대한 응답이 올 때까지 기다릴 장치가 필요! 
-    context.store.dispatch(END);
-    // store.sagaTask는 configureStore에서 등록해뒀음!
-    await context.store.sagaTask.toPromise();
-  
-    // 여기까지 실행된 결과를 HYDRATE로 보내줌!
-  } catch (error) {
-    console.log(error);
-    // console.error(error);
+  console.log('index getServerSideProps', context.req.headers);
+  const cookie = context.req ? context.req.headers.cookie : '';
+  axios.defaults.headers.Cookie = '';
+  if (context.req && cookie) {
+    axios.defaults.headers.Cookie = cookie;
   }
+
+  // 컴포넌트 화면을 그리기 전에, 서버쪽에서 먼저 실행을 함
+  //  - context 내부에 store가 들어 있음
+  //  - Redux에 데이터가 채워진 상태로 렌더링이 됨!
+  // console.log(context);
+  context.store.dispatch({
+    type: LOAD_MY_INFO_REQUEST,
+  });
+  context.store.dispatch({
+    type: LOAD_POSTS_REQUEST,
+  });
+  // 두 개의 request에 대한 응답이 올 때까지 기다릴 장치가 필요! 
+  context.store.dispatch(END);
+  console.log('index getServerSideProps end');
+  // store.sagaTask는 configureStore에서 등록해뒀음!
+  await context.store.sagaTask.toPromise();
+
+  // 여기까지 실행된 결과를 HYDRATE로 보내줌!
 });
 export default Home;

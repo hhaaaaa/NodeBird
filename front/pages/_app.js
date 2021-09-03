@@ -11,6 +11,7 @@ const NodeBird = ({ Component }) => {
     <>
       <Head>
         <meta charSet="utf-8" />
+        <link rel="icon" href="/favicon.png" />
         <title>NodeBird</title>
       </Head>
       <Component />
@@ -23,6 +24,9 @@ NodeBird.propTypes = {
 export default wrapper.withRedux(NodeBird);
 
 /* @@@ 브라우저, 프론트서버: 3060 @@@
+
+  - favicon 이미지 넣기: public폴더 생성 -> .ico / .png 이미지 넣기
+    - 바로 적용 안되면, _app.js에 <link> 태그 작성 후, 강력한 새로고침
 
   ### Next 설치 및 화면 디자인 ###
   1. Node 및 Npm 설치 확인
@@ -552,6 +556,10 @@ export default wrapper.withRedux(NodeBird);
 
   ### 서버사이드 렌더링 ###
   1. 서버사이드 렌더링
+    - 검색엔진에 노출이 필요없다면 SSR 하지 않아도 됨
+      BUT) 로그인과 같이 잠깐 풀려보이는 현상이 우려될 경우는, SSR이 필요!
+    - _appp.js 에서는 getServerSideProps(), getStaticProps()를 사용할 수 없음
+      - 공통으로 설정이 불가능 -> 필요한 모든 파일에 각각 적용시켜줘야함!
     - next-redux-wrapper가 제공하는 SSR용 메소드를 사용하는게 좋다
 
     1) HYDRATE로 데이터가 올바르게 전달되도록 설정
@@ -595,4 +603,71 @@ export default wrapper.withRedux(NodeBird);
           - 서버쪽에서 실행이 되면 context.req가 생기게 된다!
         - 프론트서버에서 쿠키가 공유되는 문제 생길 수 있음! (로그인이 공유)
           - 사용자1이 로그인한 후 사용자2가 접속한 경우, 사용자1의 정보로 로그인 되어있는 버그가 생길 수 있음
+    
+  2. getServerSideProps, getStaticProps, getStaticPaths
+    - getSeverSideProps: 접속한 상황에 따라 화면이 바뀌어야할 경우 사용
+    - getStaticProps: 언제 접속해도 데이터가 바뀔 일이 없을때 사용 (쓰기 까다로움)
+      - Next에서 빌드해줄때 정적인 HTML 파일로 뽑아줌
+      - 블로그 글, 이벤트 페이지 정도? 쓸 수 있는 페이지가 많이 없음
+    - getStaticPaths: 다이나믹 라우팅 환경에서 getStaticProps를 사용할때 같이 써줘야함! (아니면 에러)
+      - export async function getStaticPaths() {
+          return {
+            paths: [
+              { params: {...} }
+            ],
+            fallback: false,
+          };
+        }
+      - paths의 개수가 제한이 있는 경우에 사용!
+      - fallback false: params에 적혀있지 않은 경우엔 에러!
+                 true: 에러는 x, SSR이 안됨, CSR 가능하게는 할 수 있음 (router.isFallback 이용)
+
+  3. 다이나믹 라우팅
+    - 게시글을 공유하고싶을때 해당 게시글에 대한 주소가 있어야!
+      
+    1) post 폴더 생성 -> [id].js 파일 생성
+      - post/[id] 페이지가 동적으로 생성됨
+      - id는 1, 2, 3, .. 순서대로 올라감
+    
+    2) 파일 내부에 useRouter() import
+      - import { useRouter } from 'next/router';
+      - const router = useRouter();
+        const { id } = router.query;
+      
+    3) getServerSideProps, getStaticProps에서 동적으로 변하는 값 사용
+      - context.params / context.query로 접근 가능
+        ex) 위의 경우 context.params.id / context.query.id
+
+  4. CSS 서버사이드 렌더링
+    - Next는 내부적으로 웹팩, 바벨이 돌아감
+    - 바벨 설정을 임의적으로 변경해서, styled-components & 서버사이드렌더링 에러 해결 가능!
+
+    1) .babelrc 파일 생성
+      - [설치] npm i babel-plugin-styled-components
+
+      - ssr: true
+      - displayName: true는 개발모드에서 className이 외계어로 되어있는걸 컴포넌트명으로 바꿔줌
+
+    2) pages/_document.js 생성
+      - 모든 페이지의 공통 페이지인 _app.js의 상위 파일 
+      - 클래스 컴포넌트로 작성
+      - _app.js가 document로 감싸지면서 Html, Head, body 등이 수정 가능해짐 
+      - styled-components를 SSR 할 수 있게 기능 제공
+      - _document.js 코드 참고
+
+  5. SWR 사용
+    - Next에서 만든 라이브러리
+    - [설치] npm i swr
+
+    - 적어도 LOAD(get 요청) 할 때는 편함!
+    - SSR도 지원!
+
+    - import useSWR from 'swr';
+    - const fetcher = (url) => 
+        axios.get(url, { withCredentials: true }).then((result) => result.data);
+    - const { data, error } = useSWR('http://localhost:3065/user/followers', fetcher);
+      - 주소
+      - fetcher: 위 주소를 실제로 어떻게 가져올지 작성
+      - data, error 둘 다 없으면 로딩중!
+      - mutate: 강제 적용?
 */

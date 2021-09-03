@@ -7,7 +7,10 @@ import axios from 'axios';
 import { 
   ADD_COMMENT_FAILURE, ADD_COMMENT_REQUEST, ADD_COMMENT_SUCCESS, 
   ADD_POST_FAILURE, ADD_POST_REQUEST, ADD_POST_SUCCESS, 
+  LOAD_POST_REQUEST, LOAD_POST_SUCCESS, LOAD_POST_FAILURE,
   LOAD_POSTS_REQUEST, LOAD_POSTS_SUCCESS, LOAD_POSTS_FAILURE,
+  LOAD_USER_POSTS_REQUEST, LOAD_USER_POSTS_SUCCESS, LOAD_USER_POSTS_FAILURE,
+  LOAD_HASHTAG_POSTS_REQUEST, LOAD_HASHTAG_POSTS_SUCCESS, LOAD_HASHTAG_POSTS_FAILURE,
   REMOVE_POST_FAILURE, REMOVE_POST_REQUEST, REMOVE_POST_SUCCESS, 
   LIKE_POST_REQUEST, LIKE_POST_SUCCESS, LIKE_POST_FAILURE,
   UNLIKE_POST_REQUEST, UNLIKE_POST_SUCCESS, UNLIKE_POST_FAILURE,
@@ -30,6 +33,7 @@ function* unlikePost(action) {
       data: result.data,
     });
   } catch (error) {
+    console.error(error);
     yield put({
       type: UNLIKE_POST_FAILURE,
       error: error.response.data,
@@ -47,8 +51,28 @@ function* likePost(action) {
       data: result.data,
     });
   } catch (error) {
+    console.error(error);
     yield put({
       type: LIKE_POST_FAILURE,
+      error: error.response.data,
+    });
+  }
+}
+
+function loadPostAPI(data) {
+  return axios.get(`/post/${data}`);
+}
+function* loadPost(action) {
+  try {
+    const result = yield call(loadPostAPI, action.data);
+    yield put({
+      type: LOAD_POST_SUCCESS,
+      data: result.data,
+    });
+  } catch (error) {
+    console.error(error);
+    yield put({
+      type: LOAD_POST_FAILURE,
       error: error.response.data,
     });
   }
@@ -67,8 +91,48 @@ function* loadPosts(action) {
       data: result.data,
     });
   } catch (error) {
+    console.error(error);
     yield put({
       type: LOAD_POSTS_FAILURE,
+      error: error.response.data,
+    });
+  }
+}
+
+function loadUserPostsAPI(data, lastId) {
+  return axios.get(`/user/${data}/posts?lastId=${lastId || 0}`);
+}
+function* loadUserPosts(action) {
+  try {
+    const result = yield call(loadUserPostsAPI, action.data, action.lastId);
+    yield put({
+      type: LOAD_USER_POSTS_SUCCESS,
+      data: result.data,
+    });
+  } catch (error) {
+    console.error(error);
+    yield put({
+      type: LOAD_USER_POSTS_FAILURE,
+      error: error.response.data,
+    });
+  }
+}
+
+function loadHashtagPostsAPI(data, lastId) {
+  // 한글을 get 요청에 보내면 에러! - 인코드 해줘야함
+  return axios.get(`/hashtag/${encodeURIComponent(data)}?lastId=${lastId || 0}`);
+}
+function* loadHashtagPosts(action) {
+  try {
+    const result = yield call(loadHashtagPostsAPI, action.data, action.lastId);
+    yield put({
+      type: LOAD_HASHTAG_POSTS_SUCCESS,
+      data: result.data,
+    });
+  } catch (error) {
+    console.error(error);
+    yield put({
+      type: LOAD_HASHTAG_POSTS_FAILURE,
       error: error.response.data,
     });
   }
@@ -98,6 +162,7 @@ function* addPost(action) {
       data: result.data.id,
     });
   } catch (error) {
+    console.error(error);
     yield put({
       type: ADD_POST_FAILURE,
       error: error.response.data,
@@ -116,6 +181,7 @@ function* uploadImages(action) {
       data: result.data,
     });
   } catch (error) {
+    console.error(error);
     yield put({
       type: UPLOAD_IMAGES_FAILURE,
       error: error.response.data,
@@ -138,6 +204,7 @@ function* removePost(action) {
       data: action.data,
     });
   } catch (error) {
+    console.error(error);
     yield put({
       type: REMOVE_POST_FAILURE,
       error: error.response.data,
@@ -189,8 +256,17 @@ function* watchUnlikePost() {
 function* watchLikePost() {
   yield throttle(5000, LIKE_POST_REQUEST, likePost);
 }
+function* watchLoadPost() {
+  yield takeLatest(LOAD_POST_REQUEST, loadPost);
+}
 function* watchLoadPosts() {
   yield throttle(5000, LOAD_POSTS_REQUEST, loadPosts);
+}
+function* watchLoadUserPosts() {
+  yield throttle(5000, LOAD_USER_POSTS_REQUEST, loadUserPosts);
+}
+function* watchLoadHashtagPosts() {
+  yield throttle(5000, LOAD_HASHTAG_POSTS_REQUEST, loadHashtagPosts);
 }
 function* watchAddPost() {
   yield takeLatest(ADD_POST_REQUEST, addPost);
@@ -213,7 +289,10 @@ export default function* postSaga() {
     fork(watchUnlikePost),
     fork(watchLikePost),
     fork(watchAddPost),
+    fork(watchLoadPost),
     fork(watchLoadPosts),
+    fork(watchLoadUserPosts),
+    fork(watchLoadHashtagPosts),
     fork(watchRemovePost),
     fork(watchAddComment),
     fork(watchUploadImages),

@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import Link from 'next/link';
 import { useSelector } from 'react-redux';
+import Router from 'next/router';
 
 import {
   Input, Menu, Row, Col,
@@ -11,6 +12,7 @@ import styled, { createGlobalStyle } from 'styled-components';
 // import { useRouter } from 'next/dist/client/router';
 import UserProfile from './UserProfile';
 import LoginForm from './LoginForm';
+import useInput from '../hooks/useInput';
 
 const SearchInput = styled(Input.Search)`
   vertical-align: middle;
@@ -30,6 +32,11 @@ const Global = createGlobalStyle`
 
 const AppLayout = ({ children }) => {
   const { me } = useSelector((state) => state.user);
+  const [searchInput, onChangeSearchInput] = useInput('');
+
+  const onSearch = useCallback(() => {
+    Router.push(`/hashtag/${searchInput}`);
+  }, [searchInput]);
 
   // 공지사항 참고
   // const router = useRouter();
@@ -46,7 +53,12 @@ const AppLayout = ({ children }) => {
           <Link href="/profile"><a>프로필</a></Link>
         </Menu.Item>
         <Menu.Item>
-          <SearchInput enterButton />
+          <SearchInput 
+            enterButton 
+            value={searchInput}
+            onChange={onChangeSearchInput}
+            onSearch={onSearch}
+          />
         </Menu.Item>
         <Menu.Item>
           <Link href="/signup"><a>회원가입</a></Link>

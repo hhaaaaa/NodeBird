@@ -38,6 +38,7 @@
     "react/no-array-index-key": "off",
     "no-multiple-empty-lines": "off",
     "consistent-return": "off",
-    "no-param-reassign": "off"
+    "no-param-reassign": "off",
+    "react/jsx-props-no-spreading": "off"
   }
 }
