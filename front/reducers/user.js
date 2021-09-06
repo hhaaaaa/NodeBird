@@ -1,4 +1,5 @@
-import produce from 'immer';
+// import produce from 'immer';
+import produce from '../util/produce'; // 익스플로러 문제 해결
 
 export const initialState = {
   loadFollowersLoading: false, // 팔로워 불러오기 시도 중 (로딩창 용도)

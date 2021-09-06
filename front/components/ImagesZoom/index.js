@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import Slick from 'react-slick';
 
 import { Overlay, Global, Header, CloseBtn, SlickWrapper, ImageWrapper, Indicator } from './styles';
+import { backUrl } from '../../config/config';
 
 // ImagesZoom 폴더 내부에 index.js로 파일을 생성했음
 // => 곁다리 코드들을 다른 js파일로 만들어서 import 해오는 형식으로 사용!
@@ -32,7 +33,7 @@ const ImagesZoom = ({ images, onClose }) => {
             {images.map((v) => (
               <ImageWrapper key={v.src}>
                 <img 
-                  src={`http://localhost:3065/${v.src}`} 
+                  src={`${backUrl}/${v.src}`} 
                   alt={v.src} 
                 />
               </ImageWrapper>

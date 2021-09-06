@@ -1,6 +1,8 @@
 // import shortId from 'shortid';
-import produce from 'immer';
 // import faker from 'faker';
+
+// import produce from 'immer';
+import produce from '../util/produce'; // 익스플로러 문제 해결
 
 export const initialState = {
   singlePost: null,
@@ -275,7 +277,7 @@ const reducer = (state = initialState, action) => {
         draft.uploadImagesError = null;
         break;
       case UPLOAD_IMAGES_SUCCESS:
-        draft.imagePaths = action.data;
+        draft.imagePaths = draft.imagePaths.concat(action.data);
         draft.uploadImagesLoading = false;
         draft.uploadImagesDone = true;
         break;

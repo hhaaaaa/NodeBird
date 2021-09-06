@@ -29,6 +29,8 @@ const passport = require('passport');
 const dotenv = require('dotenv');
 const morgan = require('morgan');
 const path = require('path');
+const hpp = require('hpp');
+const helmet = require('helmet');
 
 const postRouter = require('./routes/post');
 const postsRouter = require('./routes/posts');
@@ -46,13 +48,26 @@ db.sequelize.sync()
   .catch(console.error);
 passportConfig();
 
-app.use(morgan('dev'));
-app.use(cors({
-  // origin: '*',
-  // 보낸 곳의 주소가 자동으로 들어가 편리함! (또는 http://localhost:3060)
-  origin: true, 
-  credentials: true,
-}));
+// app.use(morgan('dev'));
+if (process.env.NODE_ENV === 'production') {
+  app.use(morgan('combined'));
+  // node에서 production 서버할 때는 hpp, helmet 필수
+  app.use(hpp());
+  app.use(helmet());
+  app.use(cors({
+    // 나중에 도메인 연결 후에는 http://{domainName} 추가
+    origin: ['http://nodebird.com'], 
+    credentials: true,
+  })); 
+} else {
+  app.use(morgan('dev'));
+  app.use(cors({
+    // origin: '*',
+    // - true로 하면 보낸 곳의 주소가 자동으로 들어가 편리함!
+    origin: ['http://localhost:3060'], 
+    credentials: true,
+  }));
+}
 // express가 uploads 폴더를 프론트에 제공할 수 있도록
 app.use('/', express.static(path.join(__dirname, 'uploads')));
 // 프론트에서 보낸 데이터를 사용할 수 있도록 하는 코드
@@ -73,6 +88,13 @@ app.use(session({
   saveUninitialized: false,
   resave: false,
   secret: process.env.COOKIE_SECRET,
+  cookie: {
+    httpOnly: true, // js로 접근하지 못하도록
+    secure: false, // http일때는 false & https일때는 true
+    // 프론트: nodebird.com & 백: api.nodebird.com 으로 설정되어있다고 가정할 때
+    // 프론트와 백 사이 쿠키 공유가 가능해짐!
+    domain: process.env.NODE_ENV === 'production' && '.nodebird.com',
+  },
 }));
 app.use(passport.initialize());
 app.use(passport.session());

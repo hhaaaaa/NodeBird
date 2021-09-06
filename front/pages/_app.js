@@ -542,6 +542,10 @@ export default wrapper.withRedux(NodeBird);
           - 제거할땐 filter가 쓰기 더 편하기 때문에 그대로 filter 사용
             - 불변성을 지키지 않으려면 splice 쓰는게 맞음 (immer 규칙?)
           - immer 사용하면 switch문-default에 그냥 break;로 적기!
+        
+      - 익스플로러에서 동작 안하는 문제 해결
+        - util/produce.js 파일 생성
+        - Reducer에서 import produce from '../util/produce'; 로 사용
 
     7) 인피니티 스크롤링
       - react-virtualized
@@ -666,8 +670,63 @@ export default wrapper.withRedux(NodeBird);
     - const fetcher = (url) => 
         axios.get(url, { withCredentials: true }).then((result) => result.data);
     - const { data, error } = useSWR('http://localhost:3065/user/followers', fetcher);
-      - 주소
-      - fetcher: 위 주소를 실제로 어떻게 가져올지 작성
       - data, error 둘 다 없으면 로딩중!
+      - useSWR() 파라미터
+        - 주소
+        - fetcher: 위 주소를 실제로 어떻게 가져올지 작성
+        - { initialData } : swr 공식문서의 SSR with Next.js 참고
       - mutate: 강제 적용?
+
+  6. 날짜 라이브러리 사용 (Moment)
+    - moment가 사용률이 가장 많지만, dayjs 추천(용량이 35분의 1)
+
+    - 배포 과정에서 문제가 생길 수 있음!
+      - 다국어를 지원하기 때문에, 따로 필요없는 언어들 처리를 해줘야함!
+      - webpack - plugins 설정 추가
+        - new webpack.ContextReplacementPLugin(/moment[/\\]locale$/, /^\.\/ko$/)
+
+
+    
+  ### 빌드 및 배포 ###
+  1. 커스텀 웹팩 설정
+    - front/next.config.js 생성
+
+    - [설치] npm i @next/bundle-analyzer
+      - withBundleAnalyzer() 사용
+
+  2. 빌드
+    - Back-End 서버가 켜져있어야함!
+    - package.json - scripts - build 참고
+      - build 부분 수정 : "ANALYZE=true NODE_ENV=production next build"
+        - Linux, MAC 환경에서만 동작됨..
+        - 윈도우에서도 가능하게 하려면 npm i cross-env 설치
+          - cross-env ANALYZE=true NODE_ENV=production next build 작성!
+      - npm run build
+
+    - λ : getServerSideProps() 사용
+      ● : getStaticProps() 사용
+      ○ : 원래 HTML 파일
+    - 각 용량이 1MB 넘지 않도록 코드 스플리팅하면 좋음!
+
+    - bundle-analyzer: 서버와 클라이언트 쪽 구성을 팝업창 통해 보여줌!
+      - next 프로그램 작업을 완료한 후에 작업해야함!!
+
+      - 서버 쪽은 확인만 (변경핣 부분이 거의 없음)
+      - 클라이언트 쪽은 더블체크해줘야!
+        - concatenated 부분은 합쳐진 부분이라 건들 수 없음
+        - moment 등 용량 줄일 수 있는 부분을 줄여나가야 함!
+
+  3. .gitignore
+    - pem 키 파일
+    - node_modules
+    - .env
+    - .next
+
+  4. 빌드 및 배포 과정은 강의 참고!
+    - console의 log 해결 : HYDRATE와 loggerMiddleware production 환경에서 제거
+
+  ### AWS S3 & Lambda 이미지 업로드 ###
+  - multer로 s3 업로드 -> s3가 Lambda를 트리거 -> 만든 Lambda 함수 호출
+    -> s3 putObject thumb 폴더로 넣어줌 -> 브라우저에서 thumb 폴더의 이미지 받아옴
+
 */
