@@ -238,7 +238,7 @@ router.delete('/:postId/like', isLoggedIn, async (req, res, next) => {
 });
 
 // DELETE /post/1
-router.delete('/:postId', isLoggedIn,  async (req, res, next) => {  
+router.delete('/:postId', isLoggedIn, async (req, res, next) => {  
   try {
     await Post.destroy({
       where: { 
@@ -247,6 +247,40 @@ router.delete('/:postId', isLoggedIn,  async (req, res, next) => {
       },
     });
     res.status(200).json({ PostId: req.params.postId * 1});
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+});
+
+// PATCH /post/1
+router.patch('/:postId', isLoggedIn, async (req, res, next) => {  
+  const hashtags = req.body.content.match(/#[^\s#]+/g);
+  try {
+    await Post.update({
+      content: req.body.content,
+    },{
+      where: { 
+        id: req.params.postId,
+        UserId: req.user.id,
+      },
+    });
+    const post = await Post.findOne(
+      { where: { id: req.params.postId } },
+    );
+    if (hashtags) {
+      const result = await Promise.all(
+        hashtags.map((tag) => Hashtag.findOrCreate({ 
+          where: { name: tag.slice(1).toLowerCase() },
+        }))
+      );  // [[노드, true], [리액트, true]]의 형태
+      await post.setHashtags(result.map((v) => v[0]));
+    }
+    // 이미지 수정도 추가해줘야함!
+    res.status(200).json({ 
+      PostId: req.params.postId * 1,
+      content: req.body.content,
+    });
   } catch (error) {
     console.error(error);
     next(error);

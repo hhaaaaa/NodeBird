@@ -50,6 +50,7 @@ passportConfig();
 
 // app.use(morgan('dev'));
 if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
   app.use(morgan('combined'));
   // node에서 production 서버할 때는 hpp, helmet 필수
   app.use(hpp());
@@ -88,6 +89,7 @@ app.use(session({
   saveUninitialized: false,
   resave: false,
   secret: process.env.COOKIE_SECRET,
+  proxy: true, // Nginx 서버 설정에 'proxy_set_header X-Forwarded-Proto $scheme;' 추가
   cookie: {
     httpOnly: true, // js로 접근하지 못하도록
     secure: false, // http일때는 false & https일때는 true

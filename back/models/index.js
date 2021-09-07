@@ -14,6 +14,7 @@ db.Hashtag = require('./hashtag')(sequelize, Sequelize);
 db.Image = require('./image')(sequelize, Sequelize);
 db.Post = require('./post')(sequelize, Sequelize);
 db.User = require('./user')(sequelize, Sequelize);
+// 신고 위한 테이블 하나 만들어줘야함!
 
 // Object.keys(db).forEach(modelName => { // 최신 문법으로 교체
 //   db[modelName].init(sequelize);
